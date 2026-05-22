@@ -36,6 +36,7 @@ model Produto {
 
   categoriaId String
   categoria   Categoria @relation(fields: [categoriaId], references: [id])
+  movimentacoes Movimentacao[]
 
   @@map("produtos")
 }
@@ -48,4 +49,17 @@ model Usuario {
   criadoEm DateTime @default(now())
 
   @@map("usuarios")
+}
+
+model Movimentacao {
+  id         String   @id @default(cuid())
+  tipo       String   // "ENTRADA" ou "SAIDA"
+  quantidade Int
+  observacao String?
+  criadoEm   DateTime @default(now())
+  
+  produtoId  String
+  produto    Produto  @relation(fields: [produtoId], references: [id])
+  
+  @@map("movimentacoes")
 }

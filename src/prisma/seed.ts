@@ -6,6 +6,7 @@ const categorias = [
   { id: "cat-limpeza", nome: "Limpeza", icone: "🧹", cor: "#A855F7" },
   { id: "cat-eletronicos", nome: "Eletrônicos", icone: "💻", cor: "#F59E0B" },
   { id: "cat-papelaria", nome: "Papelaria", icone: "📝", cor: "#EF4444" },
+  { id: "cat-ferramentas", nome: "Ferramentas", icone: "🔧", cor: "#64748B" },
 ];
 
 async function main() {
