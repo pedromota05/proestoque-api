@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Categoria {
+  id       String    @id @default(cuid())
+  nome     String
+  icone    String
+  cor      String
+  criadoEm DateTime  @default(now())
+  produtos Produto[]
+
+  @@map("categorias")
+}
+
+model Produto {
+  id                 String    @id @default(cuid())
+  nome               String
+  quantidade         Int       @default(0)
+  preco              Float
+  quantidadeMinima   Int       @default(0)
+  unidade            String    @default("un")
+  observacao         String?
+  foto               String?
+  ultimaMovimentacao DateTime  @default(now())
+  criadoEm           DateTime  @default(now())
+  atualizadoEm       DateTime  @updatedAt
+
+  categoriaId String
+  categoria   Categoria @relation(fields: [categoriaId], references: [id])
+
+  @@map("produtos")
+}
+
+model Usuario {
+  id       String   @id @default(cuid())
+  nome     String
+  email    String   @unique
+  senha    String
+  criadoEm DateTime @default(now())
+
+  @@map("usuarios")
+}
