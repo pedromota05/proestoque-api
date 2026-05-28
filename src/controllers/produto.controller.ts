@@ -4,7 +4,11 @@ import { AppError } from "../middlewares/errorHandler";
 
 export async function listar(req: Request, res: Response, next: NextFunction) {
   try {
-    const { busca, categoriaId, apenasAlerta, pagina = "1", limite = "20" } = req.query;
+    const busca = req.query.busca as string | undefined;
+    const categoriaId = req.query.categoriaId as string | undefined;
+    const apenasAlerta = req.query.apenasAlerta as string | undefined;
+    const pagina = (req.query.pagina as string) || "1";
+    const limite = (req.query.limite as string) || "20";
 
     const paginaNum = Math.max(1, Number(pagina));
     const limiteNum = Math.max(1, Math.min(100, Number(limite)));
@@ -87,7 +91,7 @@ export async function listar(req: Request, res: Response, next: NextFunction) {
 
 export async function buscarPorId(req: Request, res: Response, next: NextFunction) {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const produto = await prisma.produto.findUnique({
       where: { id },
@@ -134,7 +138,7 @@ export async function criar(req: Request, res: Response, next: NextFunction) {
 
 export async function atualizar(req: Request, res: Response, next: NextFunction) {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { nome, preco, categoriaId, quantidade, quantidadeMinima, unidade, observacao, foto } = req.body;
 
     const produtoExistente = await prisma.produto.findUnique({ where: { id } });
@@ -167,7 +171,7 @@ export async function atualizar(req: Request, res: Response, next: NextFunction)
 
 export async function deletar(req: Request, res: Response, next: NextFunction) {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const produtoExistente = await prisma.produto.findUnique({ where: { id } });
 

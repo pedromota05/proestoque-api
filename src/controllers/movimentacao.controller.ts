@@ -5,7 +5,7 @@ import { AppError } from "../middlewares/errorHandler";
 export class MovimentacaoController {
   async registrar(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id: produtoId } = req.params;
+      const produtoId = req.params.id as string;
       const { tipo, quantidade, observacao } = req.body;
 
       const produto = await prisma.produto.findUnique({
@@ -52,7 +52,7 @@ export class MovimentacaoController {
 
   async listarPorProduto(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id: produtoId } = req.params;
+      const produtoId = req.params.id as string;
 
       const movimentacoes = await prisma.movimentacao.findMany({
         where: { produtoId },

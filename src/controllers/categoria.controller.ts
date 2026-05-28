@@ -21,7 +21,7 @@ export async function listar(req: Request, res: Response, next: NextFunction) {
 
 export async function buscarPorId(req: Request, res: Response, next: NextFunction) {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const categoria = await prisma.categoria.findUnique({
       where: { id },
