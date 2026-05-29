@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../../generated/prisma/client';
@@ -6,7 +7,12 @@ import { PrismaClient } from '../../generated/prisma/client';
 const connectionString = process.env.DATABASE_URL;
 
 // Cria o motor de conexão do Postgres
-const pool = new Pool({ connectionString });
+const pool = new Pool({ 
+  connectionString,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
 const adapter = new PrismaPg(pool);
 
 // Entrega o motor para o Prisma
