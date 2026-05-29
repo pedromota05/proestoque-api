@@ -2,9 +2,20 @@ import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import nodemailer from "nodemailer";
 import { prisma } from "../prisma/client";
 import { config } from "../config";
-import { RegistroInput, LoginInput } from "../schemas/auth.schema";
+import { RegistroInput, LoginInput, SolicitarResetInput, RedefinirSenhaInput } from "../schemas/auth.schema";
+import { AppError } from "../middlewares/errorHandler";
+
+const transporter = nodemailer.createTransport({
+  host: config.SMTP_HOST,
+  port: config.SMTP_PORT,
+  auth: {
+    user: config.SMTP_USER,
+    pass: config.SMTP_PASS,
+  },
+});
 
 function generateRefreshToken(): string {
   return crypto.randomBytes(40).toString('hex');
@@ -173,6 +184,86 @@ export class AuthController {
       }
 
       res.json({ usuario });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async solicitarReset(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { email } = req.body as SolicitarResetInput;
+
+      const usuario = await prisma.usuario.findUnique({ where: { email } });
+
+      // Retorna 200 sempre por segurança
+      if (!usuario) {
+        res.json({ message: "Se o e-mail existir em nossa base, enviaremos um link de recuperação." });
+        return;
+      }
+
+      // Limpa tokens antigos
+      await prisma.resetToken.deleteMany({ where: { usuarioId: usuario.id } });
+
+      // Gera novo token
+      const token = crypto.randomBytes(64).toString("hex");
+
+      await prisma.resetToken.create({
+        data: {
+          token,
+          usuarioId: usuario.id,
+          expiraEm: new Date(Date.now() + 60 * 60 * 1000), // 1 hora
+        },
+      });
+
+      // Envia o e-mail
+      const link = `${config.FRONTEND_URL}/redefinir-senha?token=${token}`;
+
+      await transporter.sendMail({
+        from: '"ProEstoque" <no-reply@proestoque.com>',
+        to: usuario.email,
+        subject: "Recuperação de Senha - ProEstoque",
+        html: `
+          <h3>Olá, ${usuario.nome}!</h3>
+          <p>Você solicitou a redefinição da sua senha.</p>
+          <p>Clique no link abaixo para criar uma nova senha:</p>
+          <p><a href="${link}">${link}</a></p>
+          <p>Se você não solicitou isso, pode ignorar este e-mail.</p>
+        `,
+      });
+
+      res.json({ message: "Se o e-mail existir em nossa base, enviaremos um link de recuperação." });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async redefinirSenha(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { token, novaSenha } = req.body as RedefinirSenhaInput;
+
+      const resetToken = await prisma.resetToken.findUnique({
+        where: { token },
+      });
+
+      if (!resetToken || resetToken.expiraEm < new Date()) {
+        throw new AppError("Token inválido ou expirado.", 400);
+      }
+
+      // Criptografa nova senha
+      const senhaHash = await bcrypt.hash(novaSenha, 10);
+
+      // Atualiza o usuário
+      await prisma.usuario.update({
+        where: { id: resetToken.usuarioId },
+        data: { senha: senhaHash },
+      });
+
+      // Limpa os tokens do usuário
+      await prisma.resetToken.deleteMany({
+        where: { usuarioId: resetToken.usuarioId },
+      });
+
+      res.json({ message: "Senha redefinida com sucesso!" });
     } catch (error) {
       next(error);
     }
