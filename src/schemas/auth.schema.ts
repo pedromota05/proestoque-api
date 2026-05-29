@@ -5,7 +5,7 @@ export const registroSchema = z.object({
   email: z.string({ error: "E-mail é obrigatório" }).email("E-mail inválido"),
   senha: z
     .string({ error: "Senha é obrigatória" })
-    .min(6, "A senha deve ter no mínimo 6 caracteres"),
+    .min(4, "A senha deve ter no mínimo 4 caracteres"),
 });
 
 export const loginSchema = z.object({
