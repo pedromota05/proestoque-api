@@ -13,7 +13,7 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 // Healthcheck
 app.get("/", (req, res) => {
